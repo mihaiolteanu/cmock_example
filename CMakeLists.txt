@@ -1,45 +1,44 @@
 cmake_minimum_required(VERSION 3.8.0)
 project(unity_examples)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build) # Location of executables
-set(UNITY_ROOT  ${CMAKE_CURRENT_SOURCE_DIR}/vendor/Unity)
-set(SOURCE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(TEST_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/test)
-set(RUNNERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test/test_runners)
-set(UNITY_SRC   ${UNITY_ROOT}/src/unity.c)
-file(GLOB SOURCE_FILES    "${SOURCE_DIR}/*.c")
-file(GLOB TEST_FILES    "${TEST_DIR}/*.c")
-include_directories(${SOURCE_DIR} ${UNITY_ROOT}/src)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build) # Location of executables
+set(unity_root  ${CMAKE_CURRENT_SOURCE_DIR}/vendor/Unity)
+set(src_dir     ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(test_dir    ${CMAKE_CURRENT_SOURCE_DIR}/test)
+set(runners_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/test_runners)
+set(unity_src   ${unity_root}/src/unity.c)
+file(GLOB src_files  "${src_dir}/*.c")
+file(GLOB test_files "${test_dir}/*.c")
+include_directories(${src_dir} ${unity_root}/src)
 
-add_executable(calculator ${SOURCE_FILES})
+add_executable(calculator ${src_files})
 
 # Generate test runners for each file and generate test executables.
-foreach(TEST_FILE ${TEST_FILES})
-  get_filename_component(TEST_FILE_NAME ${TEST_FILE} NAME) # Strip path
-  string(REGEX REPLACE "\\.[^.]*$" "" TEST_FILE_NO_EXT ${TEST_FILE_NAME}) # Remove extension
-  set(TEST_RUNNER_FILE_NAME ${TEST_FILE_NO_EXT}_runner.c)
-  set(TEST_BINARY ${TEST_FILE_NO_EXT})
+foreach(test_file ${test_files})
+  get_filename_component(test_file_name ${test_file} NAME) # Strip path
+  string(REGEX REPLACE "\\.[^.]*$" "" test_file_no_ext ${test_file_name}) # Remove extension
+  set(test_runner_file_name ${test_file_no_ext}_runner.c)
+  set(test_binary ${test_file_no_ext})
   # test files have the format "test_myfile.c" for testing the "myfile.c" source file.
-  string(REPLACE "_" ";" TEST_FILE_DUO ${TEST_FILE_NO_EXT}) # Find the source name
-  list(GET TEST_FILE_DUO 1 SOURCE_FILE_NO_EXT)		    # by splitting the test file
-  set(SOURCE_FILE_NAME ${SOURCE_FILE_NO_EXT}.c)		    # Build the source file name.
-  # message(${SOURCE_FILE_NO_EXT})
-
+  string(REPLACE "_" ";" test_file_duo ${test_file_no_ext}) # Find the source name
+  list(GET test_file_duo 1 src_file_no_ext)		    # by splitting the test file
+  set(src_file_name ${src_file_no_ext}.c)		    # Build the source file name.
+  
   add_custom_command(
-    OUTPUT  ${RUNNERS_DIR}/${TEST_RUNNER_FILE_NAME}
-    DEPENDS ${TEST_FILE} ${SOURCE_DIR}/${SOURCE_FILE_NAME}
+    OUTPUT  ${runners_dir}/${test_runner_file_name}
+    DEPENDS ${test_file} ${src_dir}/${src_file_name}
     COMMAND ruby
-            ${UNITY_ROOT}/auto/generate_test_runner.rb
-	    ${TEST_FILE}
-	    ${RUNNERS_DIR}/${TEST_RUNNER_FILE_NAME}
+            ${unity_root}/auto/generate_test_runner.rb
+	    ${test_file}
+	    ${runners_dir}/${test_runner_file_name}
     COMMENT "generate unity test runner"
     )
 
-  add_executable(${TEST_BINARY}
-    ${RUNNERS_DIR}/${TEST_RUNNER_FILE_NAME}
-    ${SOURCE_DIR}/${SOURCE_FILE_NAME}
-    ${TEST_FILE}
-    ${UNITY_SRC}
+  add_executable(${test_binary}
+    ${runners_dir}/${test_runner_file_name}
+    ${src_dir}/${src_file_name}
+    ${test_file}
+    ${unity_src}
     )
 endforeach()
 
