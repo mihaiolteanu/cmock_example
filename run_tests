@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
-for binary in ./build/test_*; do
-    ./$binary
+# echo "-------------------------"
+script_path=${0:a:h}		# get this script parent absolute path
+
+for binary in ${script_path}/build/test_*; do
+    $binary
 done
