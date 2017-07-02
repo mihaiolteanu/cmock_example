@@ -7,8 +7,11 @@ set(SOURCE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(TEST_DIR    ${CMAKE_CURRENT_SOURCE_DIR}/test)
 set(RUNNERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test/test_runners)
 set(UNITY_SRC   ${UNITY_ROOT}/src/unity.c)
+file(GLOB SOURCE_FILES    "${SOURCE_DIR}/*.c")
 file(GLOB TEST_FILES    "${TEST_DIR}/*.c")
-include_directories(src ${UNITY_ROOT}/src)
+include_directories(${SOURCE_DIR} ${UNITY_ROOT}/src)
+
+add_executable(calculator ${SOURCE_FILES})
 
 # Generate test runners for each file and generate test executables.
 foreach(TEST_FILE ${TEST_FILES})
