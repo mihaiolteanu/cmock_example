@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+
+for binary in ./build/test_*; do
+    ./$binary
+done
