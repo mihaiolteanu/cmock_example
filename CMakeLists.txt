@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.8.0)
 project(unity_examples)
 
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build) # Location of executables
-set(unity_root  ${CMAKE_CURRENT_SOURCE_DIR}/vendor/Unity)
-set(src_dir     ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(test_dir    ${CMAKE_CURRENT_SOURCE_DIR}/test)
-set(runners_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/test_runners)
+set(this        ${CMAKE_CURRENT_SOURCE_DIR})
+set(unity_root  ${this}/vendor/Unity)
+set(src_dir     ${this}/src)
+set(test_dir    ${this}/test)
+set(runners_dir ${this}/test/test_runners)
 set(unity_src   ${unity_root}/src/unity.c)
 file(GLOB src_files  "${src_dir}/*.c")
 file(GLOB test_files "${test_dir}/test_*.c")
