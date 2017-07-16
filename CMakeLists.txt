@@ -12,14 +12,16 @@ file(GLOB test_files "${test_dir}/test_*.c")
 include_directories(${src_dir} ${unity_root}/src)
 
 function(set_file_names file src runner binary)
-  get_filename_component(file_name ${file} NAME) # Strip path
-  string(REGEX REPLACE "\\.[^.]*$" "" file_noext ${file_name}) # Remove extension
-  set(${runner} ${file_noext}_runner.c PARENT_SCOPE)
-  set(${binary} ${file_noext} PARENT_SCOPE)
-  # test files have the format "test_myfile.c" for testing the "myfile.c" source file.
-  string(REPLACE "_" ";" split ${file_noext})
-  list(GET split 1 src_noext)
-  set(${src} ${src_noext}.c PARENT_SCOPE)
+  execute_process(
+    COMMAND ${this}/file_names ${file}
+    OUTPUT_VARIABLE files
+    )
+  list(GET files 0 _src)
+  list(GET files 1 _runner)
+  list(GET files 2 _binary)
+  set(${src} ${_src} PARENT_SCOPE)
+  set(${runner} ${_runner} PARENT_SCOPE)
+  set(${binary} ${_binary} PARENT_SCOPE)
 endfunction(set_file_names)
 
 add_executable(calculator ${src_files})
