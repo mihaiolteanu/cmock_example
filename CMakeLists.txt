@@ -8,7 +8,7 @@ set(test_dir    ${CMAKE_CURRENT_SOURCE_DIR}/test)
 set(runners_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/test_runners)
 set(unity_src   ${unity_root}/src/unity.c)
 file(GLOB src_files  "${src_dir}/*.c")
-file(GLOB test_files "${test_dir}/*.c")
+file(GLOB test_files "${test_dir}/test_*.c")
 include_directories(${src_dir} ${unity_root}/src)
 
 add_executable(calculator ${src_files})
