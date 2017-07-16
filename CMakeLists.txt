@@ -11,40 +11,40 @@ file(GLOB src_files  "${src_dir}/*.c")
 file(GLOB test_files "${test_dir}/test_*.c")
 include_directories(${src_dir} ${unity_root}/src)
 
+function(set_file_names file src runner binary)
+  get_filename_component(file_name ${file} NAME) # Strip path
+  string(REGEX REPLACE "\\.[^.]*$" "" file_noext ${file_name}) # Remove extension
+  set(${runner} ${file_noext}_runner.c PARENT_SCOPE)
+  set(${binary} ${file_noext} PARENT_SCOPE)
+  # test files have the format "test_myfile.c" for testing the "myfile.c" source file.
+  string(REPLACE "_" ";" split ${file_noext})
+  list(GET split 1 src_noext)
+  set(${src} ${src_noext}.c PARENT_SCOPE)
+endfunction(set_file_names)
+
 add_executable(calculator ${src_files})
 
 # Generate test runners for each file and generate test executables.
-foreach(test_file ${test_files})
-  get_filename_component(test_file_name ${test_file} NAME) # Strip path
-  string(REGEX REPLACE "\\.[^.]*$" "" test_file_no_ext ${test_file_name}) # Remove extension
-  set(test_runner_file_name ${test_file_no_ext}_runner.c)
-  set(test_binary ${test_file_no_ext})
-  # test files have the format "test_myfile.c" for testing the "myfile.c" source file.
-  string(REPLACE "_" ";" test_file_duo ${test_file_no_ext}) # Find the source name
-  list(GET test_file_duo 1 src_file_no_ext)		    # by splitting the test file
-  set(src_file_name ${src_file_no_ext}.c)		    # Build the source file name.
+foreach(test ${test_files})
+  set_file_names(${test} src runner binary)
   
   add_custom_command(
-    OUTPUT  ${runners_dir}/${test_runner_file_name}
-    DEPENDS ${test_file} ${src_dir}/${src_file_name}
+    OUTPUT  ${runners_dir}/${runner}
+    DEPENDS ${test} ${src_dir}/${src}
     COMMAND ruby
             ${unity_root}/auto/generate_test_runner.rb
-	    ${test_file}
-	    ${runners_dir}/${test_runner_file_name}
+	    ${test}
+	    ${runners_dir}/${runner}
     COMMENT "generate unity test runner"
     )
 
-  add_executable(${test_binary}
-    ${runners_dir}/${test_runner_file_name}
-    ${src_dir}/${src_file_name}
-    ${test_file}
+  add_executable(${binary}
+    ${runners_dir}/${runner}
+    ${src_dir}/${src}
+    ${test}
     ${unity_src}
     )
 endforeach()
 
 # set_target_properties(whateverrr PROPERTIES
 #   COMPILE_FLAGS "-Wall")
-
-
-
-
