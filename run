@@ -10,7 +10,7 @@ build() {
 }
 
 run() {
-    for binary in ${build_path}/test_*; do
+    for binary in ${build_path}/test_*(.); do
 	$binary
     done
 }
