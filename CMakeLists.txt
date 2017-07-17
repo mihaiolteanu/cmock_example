@@ -3,13 +3,19 @@ project(unity_examples)
 
 set(this        ${CMAKE_CURRENT_SOURCE_DIR})
 set(unity_root  ${this}/vendor/Unity)
+set(cmock_root  ${this}/vendor/CMock)
 set(src_dir     ${this}/src)
 set(test_dir    ${this}/test)
 set(runners_dir ${this}/test/test_runners)
+set(mocks_dir   ${this}/build/mocks)
 set(unity_src   ${unity_root}/src/unity.c)
-file(GLOB src_files  "${src_dir}/*.c")
-file(GLOB test_files "${test_dir}/test_*.c")
-include_directories(${src_dir} ${unity_root}/src)
+set(cmock_src   ${cmock_root}/src/cmock.c)
+file(GLOB src_files	"${src_dir}/*.c")
+file(GLOB h_files	"${src_dir}/*.h")
+file(GLOB test_files	"${test_dir}/test_*.c")
+file(MAKE_DIRECTORY      ${mocks_dir})
+file(GLOB mock_files	"${mocks_dir}/*.[ch]")
+include_directories(${src_dir} ${unity_root}/src ${cmock_root}/src ${mocks_dir})
 
 function(set_file_names file src runner binary)
   execute_process(
@@ -24,7 +30,30 @@ function(set_file_names file src runner binary)
   set(${binary} ${_binary} PARENT_SCOPE)
 endfunction(set_file_names)
 
-add_executable(calculator ${src_files})
+function(set_mock_names header mock_c mock_h)
+  execute_process(
+    COMMAND ${this}/mock_names ${header}
+    OUTPUT_VARIABLE files
+    ) 
+  list(GET files 0 _mock_c)
+  list(GET files 1 _mock_h)
+  set(${mock_c} ${_mock_c} PARENT_SCOPE)
+  set(${mock_h} ${_mock_h} PARENT_SCOPE)
+endfunction(set_mock_names)
+
+foreach(header ${h_files})
+  set_mock_names(${header} mock_c mock_h)
+   
+  add_custom_command(
+    OUTPUT  ${mocks_dir}/${mock_c} ${mocks_dir}/${mock_h}
+    DEPENDS ${header}
+    COMMAND ruby
+            ${cmock_root}/lib/cmock.rb
+	    --mock_prefix="mock_" --mock_path=${mocks_dir}
+	    ${header}
+    COMMENT "Generate mocks for all modules and for all interfaces files"  
+    )
+endforeach()
 
 # Generate test runners for each file and generate test executables.
 foreach(test ${test_files})
@@ -40,13 +69,27 @@ foreach(test ${test_files})
     COMMENT "generate unity test runner"
     )
 
-  add_executable(${binary}
-    ${runners_dir}/${runner}
-    ${src_dir}/${src}
-    ${test}
+  # Get test file mock dependencies
+  execute_process(
+    COMMAND ${this}/test_mocks_depend ${test}
+    OUTPUT_VARIABLE mocks
+    )
+  
+  add_executable(
+    ${binary}         # add a new test binary
+    ${runners_dir}/${runner} # contains the main function
+    ${src_dir}/${src} # include the file that's being tested (if more
+                      # files per module, it should include all of
+		      # them - not implemented now)
+    ${mocks}	      # include mocks for all the modules the file
+		      # under test depends on
+    ${test}	      # the test file
     ${unity_src}
+    ${cmock_src}
     )
 endforeach()
+
+add_executable(calculator ${src_files})
 
 # set_target_properties(whateverrr PROPERTIES
 #   COMPILE_FLAGS "-Wall")
